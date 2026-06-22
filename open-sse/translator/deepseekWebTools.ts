@@ -262,7 +262,10 @@ function getXmlChild(inner: string, tag: string): string | null {
   return m ? m[1].trim() : null;
 }
 
-const PARAM_TAG_RE = /<parameter\b([^>]*?)\/?>(?:([\s\S]*?)<\/parameter>)?/gi;
+// The body group is a tempered greedy token: `(?:(?!<parameter\b)[\s\S])*?` so an
+// attribute-only `<parameter ...>` (no closing tag) cannot let the body matcher swallow a
+// following `<parameter>...</parameter>` and drop that parameter.
+const PARAM_TAG_RE = /<parameter\b([^>]*?)\/?>(?:((?:(?!<parameter\b)[\s\S])*?)<\/parameter>)?/gi;
 
 /** Collect `<parameter name="x" content="y">` / `<parameter name="x">y</parameter>` into an object. */
 function buildArgsFromParameters(inner: string): Record<string, unknown> | null {

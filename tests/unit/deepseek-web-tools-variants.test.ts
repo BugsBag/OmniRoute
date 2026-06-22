@@ -121,6 +121,18 @@ describe("deepseekWebTools — variants", () => {
     assert.equal(call.function.name, "get_weather");
   });
 
+  test("multiple <parameter> tags mixing content-attr and body styles are all captured", () => {
+    // Regression: an attribute-style <parameter ...> with no closing tag must not let the
+    // body matcher swallow a following body-style <parameter>...</parameter> (lost param).
+    const text = `<tool:write>\n<parameter name="filePath" content="/tmp/a.py">\n<parameter name="content">print(1)</parameter>\n</tool>`;
+    const call = firstCall(text);
+    assert.equal(call.function.name, "write");
+    assert.deepEqual(JSON.parse(call.function.arguments), {
+      filePath: "/tmp/a.py",
+      content: "print(1)",
+    });
+  });
+
   test("surrounding text is preserved both before and after the tool block", () => {
     const text = `Before text.\n<tool:bash>\n{"command": "ls"}\n</tool>\nAfter text.`;
     const { content, toolCalls } = parseDeepSeekToolCalls(text, "call", TOOLS);
